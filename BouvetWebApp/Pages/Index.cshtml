@@ -1,0 +1,91 @@
+﻿@page
+@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.EntityFrameworkCore.Metadata.Conventions
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+<body>
+
+<form method="get" action="/">
+    <input type="number" name="Id" placeholder="Søk etter Org nr.">
+    <input type="submit" value="Søk">
+</form>
+<form method="get" action="/">
+    <select name="Org">
+        @{
+            var codes = Model.GetOrgTypes();
+            foreach (var s in codes)
+            {
+                <option value="@s">@s</option>
+            }
+        }
+    </select>
+    <input type="submit" value="Søk">
+</form>
+
+
+<h3>Firma Liste</h3>
+@{
+    if (Model.Enheter == null)
+    {
+        <h2>Ingen elementer matcher dine kriterier.</h2>
+    }
+    else
+    {
+        <table border="1" cellpadding="2" cellspacing="2">
+            <tr>
+                <th>Navn</th>
+                <th>Organisasjonsnummer</th>
+                <th>Org kode</th>
+                <th>Org beskrivelse</th>
+                <th>Vurdering</th>
+            </tr>
+            @foreach (var item in Model.Enheter)
+            {
+                <tr>
+                    <td>@item.Navn</td>
+                    <td>@item.Organisasjonsnummer</td>
+                    <td>@item.Organisasjonsform.Kode</td>
+                    <td>@item.Organisasjonsform.Beskrivelse</td>
+                    <td>
+                        @item.Vurdering
+                        <form method="post">
+                            <input type="hidden" name="Id" value="@item.Organisasjonsnummer"/>
+                            <select name="Rating" id="Rating">
+                                <option value=1>1</option>
+                                <option value=2>2</option>
+                                <option value=3>3</option>
+                                <option value=4>4</option>
+                                <option value=5>5</option>
+                            </select>
+                            <button type="submit" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-save">Save</i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </table> 
+    }
+}
+
+@{
+    var pageCount = Model.GetPages();
+    for (int i = 1; i <= pageCount; i++)
+    {
+        <a href="/?GoToPage=@i">
+           <button>@i</button>
+        </a>
+    }
+}
+</body>
+</html>
