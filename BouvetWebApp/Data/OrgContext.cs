@@ -9,8 +9,8 @@ namespace BouvetWebApp.Data
         public OrgContext(DbContextOptions<OrgContext> options) 
             : base(options)
         {
-            
         }
+        
         public DbSet<Enheter> Enheter { get; set; }
         
         public DbSet<Organisasjonsform> Organisasjonsform { get; set; }

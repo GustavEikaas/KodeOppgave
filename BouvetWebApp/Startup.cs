@@ -29,8 +29,9 @@ namespace BouvetWebApp
         {
             services.AddRazorPages();
             services.AddPooledDbContextFactory<OrgContext>(
-                options => options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=webstep;Trusted_Connection=True;MultipleActiveResultSets=true"));
+                options => options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=Bouvet;Trusted_Connection=True;MultipleActiveResultSets=true"));
             services.AddTransient<OrgContext>();
+            
             services.AddTransient<ICompanyRepository, CompanyRepository>();
             services.AddTransient<IOrganizationRepository, OrganizationRepository>();
         }

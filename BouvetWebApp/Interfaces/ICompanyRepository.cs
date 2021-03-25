@@ -7,8 +7,10 @@ namespace BouvetWebApp.Interfaces
     public interface ICompanyRepository
     {
         public List<Enheter> GetPaginatedResult(int currentPage);
+        
         public Task UpdateRating(int id, int rating);
-        public List<Enheter> GetCompaniesByOrgType(string org);
+        
+        public QueryResult GetCompaniesByOrgType(string org, int? page);
 
         public Enheter GetCompanyById(int id);
 

@@ -23,9 +23,9 @@
     <select name="Org">
         @{
             var codes = Model.GetOrgTypes();
-            foreach (var s in codes)
+            foreach (var code in codes)
             {
-                <option value="@s">@s</option>
+                <option value="@code">@code</option>
             }
         }
     </select>
@@ -35,9 +35,9 @@
 
 <h3>Firma Liste</h3>
 @{
-    if (Model.Enheter == null)
+    if (Model.Enheter.Count() == 0)
     {
-        <h2>Ingen elementer matcher dine kriterier.</h2>
+        <h3>Ingen elementer å vise.</h3>
     }
     else
     {
@@ -79,12 +79,21 @@
 }
 
 @{
-    var pageCount = Model.GetPages();
+    var pageCount = Model.PageNumber;
     for (int i = 1; i <= pageCount; i++)
     {
-        <a href="/?GoToPage=@i">
-           <button>@i</button>
-        </a>
+        if (string.IsNullOrEmpty(Model.CurrFilter))
+        {
+            <a href="/?GoToPage=@i">
+                <button>@i</button>
+            </a>
+        }
+        else
+        {
+            <a href="/@Model.CurrFilter&&GoToPage=@i">
+                <button>@i</button>
+            </a>
+        }
     }
 }
 </body>

@@ -5,6 +5,6 @@ namespace BouvetWebApp.Interfaces
 {
     public interface IOrganizationRepository
     {
-        public List<String> GetOrgTypes();
+        public List<string> GetOrgTypes();
     }
 }

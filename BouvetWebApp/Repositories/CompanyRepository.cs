@@ -36,20 +36,28 @@ namespace BouvetWebApp.Repositories
             var context = _contextFactory.CreateDbContext();
             
             var organization = context.Enheter.AsNoTracking().First(z => z.Organisasjonsnummer == id);
-            organization.Vurdering = rating;
-            context.Enheter.Update(organization);
-            await context.SaveChangesAsync();
+            if (organization != null)
+            {
+                organization.Vurdering = rating;
+                context.Enheter.Update(organization);
+                await context.SaveChangesAsync();
+            }
         }
 
-        public List<Enheter> GetCompaniesByOrgType(string org)
+        public QueryResult GetCompaniesByOrgType(string org, int? page)
         {
             var context = _contextFactory.CreateDbContext();
+            var queryResult = new QueryResult();
             try
             {
-                return context.Enheter.Include(x => x.Organisasjonsform)
-                    .Where(x => x.Organisasjonsform.Kode == org)
-                    .Take(20).OrderBy(x => x.Organisasjonsnummer)
+                var query = context.Enheter.Include(x => x.Organisasjonsform)
+                    .Where(x => x.Organisasjonsform.Kode == org);
+
+                queryResult.Companies = query.Skip((page ?? 1 - 1) * 20).Take(Pagesize)
                     .AsNoTracking().ToList();
+
+                queryResult.Pages = context.Enheter.Where(x => x.Organisasjonsform.Kode == org).Count() / Pagesize;
+                return queryResult;
             }
             catch (InvalidOperationException)
             {

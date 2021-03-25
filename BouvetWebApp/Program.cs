@@ -31,7 +31,7 @@ namespace BouvetWebApp
                 try
                 {
                     var contextFactory = services.GetRequiredService<IDbContextFactory<OrgContext>>();
-                    var dbController = new DbInitializer(contextFactory,default);
+                    var dbController = new ExternalApi(contextFactory,default);
                         dbController.Initialize();
                 }
                 catch (Exception ex)

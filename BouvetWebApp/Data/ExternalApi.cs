@@ -5,20 +5,19 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using BouvetWebApp.Models;
-using BouvetWebApp.Pages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace BouvetWebApp.Data
 {
-    public class DbInitializer
+    public class ExternalApi
     {
-        private readonly ILogger<DbInitializer> _logger;
+        private readonly ILogger<ExternalApi> _logger;
         private readonly IDbContextFactory<OrgContext> _contextFactory;
         private const string Query = @"https://data.brreg.no/enhetsregisteret/api/enheter?size=1000";
 
-        public DbInitializer(IDbContextFactory<OrgContext> contextFactory, ILogger<DbInitializer> logger)
+        public ExternalApi(IDbContextFactory<OrgContext> contextFactory, ILogger<ExternalApi> logger)
         {
             _contextFactory = contextFactory;
             _logger = logger;
@@ -29,12 +28,11 @@ namespace BouvetWebApp.Data
             context.Database.EnsureCreated();
             UpdateFromApi().Wait();
         }
-
         
-        public async Task UpdateFromApi()
+        private async Task UpdateFromApi()
         {
             var context = _contextFactory.CreateDbContext();
-            var updateList = await FetchDataFromExternalAPI();
+            var updateList = await FetchDataFromExternalApi();
             
             if (updateList != null)
             {
@@ -55,20 +53,19 @@ namespace BouvetWebApp.Data
                 }
                 await context.SaveChangesAsync();
             }
-                           
         }
 
-        public async Task<List<Enheter>> FetchDataFromExternalAPI()
+        private async Task<IEnumerable<Enheter>> FetchDataFromExternalApi()
         {
-            using HttpClient client = new HttpClient();
-                using HttpResponseMessage res = await client.GetAsync(Query);
-                using HttpContent content = res.Content;
+            using var client = new HttpClient();
+                using var res = await client.GetAsync(Query);
+                using var content = res.Content;
                 
                 var data = await content.ReadAsStringAsync();
                 var updateList = JsonConvert.DeserializeObject<Root>(data);
                 data = null;
 
-                if (updateList != null) return updateList._embedded.enheter;
+                if (updateList != null) return updateList._embedded.Enheter;
                 
                 _logger.Log(LogLevel.Error, "External API returned no data");
                 return null;

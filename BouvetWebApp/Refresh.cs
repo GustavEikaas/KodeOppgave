@@ -1,13 +1,14 @@
 ﻿using System.Threading;
 using BouvetWebApp.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace BouvetWebApp
 {
     public class Refresh
     {
         private readonly IDbContextFactory<OrgContext> _contextFactory;
-        
+
         public Refresh(IDbContextFactory<OrgContext> contextFactory)
         {
             _contextFactory = contextFactory;
@@ -26,9 +27,9 @@ namespace BouvetWebApp
         {
             try
             {
-                var dbController = new DbInitializer(_contextFactory, default);
+                var dbController = new ExternalApi(_contextFactory, default);
 
-                dbController.UpdateFromApi().Wait();
+                dbController.Initialize();
             }   
             finally
             {

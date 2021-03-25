@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using BouvetWebApp.Data;
+﻿using System.Collections.Generic;
 using BouvetWebApp.Interfaces;
 using BouvetWebApp.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace BouvetWebApp.Pages
 {
@@ -16,7 +9,9 @@ namespace BouvetWebApp.Pages
     {
         private readonly ICompanyRepository _companyRepository;
         private readonly IOrganizationRepository _organizationRepository;
-        public List<Enheter> Enheter { get; set; } = new List<Enheter>();
+        public List<Enheter> Enheter { get; private set; } = new List<Enheter>();
+        public int PageNumber { get; private set; }
+        public string CurrFilter { get; private set; }
 
         public IndexModel(
             ICompanyRepository companyRepository,
@@ -28,6 +23,7 @@ namespace BouvetWebApp.Pages
         
         public void OnGet(GetRequest request)
         {
+            CurrFilter = null;
             if (request.Id != 0)
             {
                 var company = _companyRepository.GetCompanyById(request.Id);
@@ -38,12 +34,15 @@ namespace BouvetWebApp.Pages
             }
             else if (!string.IsNullOrEmpty(request.Org))
             {
-                Enheter = _companyRepository.GetCompaniesByOrgType(request.Org);
-                
+                var result = _companyRepository.GetCompaniesByOrgType(request.Org, request.GoToPage);
+                Enheter = result.Companies;
+                PageNumber = result.Pages;
+                CurrFilter = $"?Org={request.Org}";
             }
             else if (request.GoToPage != 0)
             {
                 Enheter = _companyRepository.GetPaginatedResult(request.GoToPage);
+                PageNumber = _companyRepository.GetPages();
             }
             else
             {
@@ -61,16 +60,12 @@ namespace BouvetWebApp.Pages
             Refresh();
         }
 
-        public void Refresh()
+        private void Refresh()
         {
             Enheter = _companyRepository.GetPaginatedResult(1);
+            PageNumber = _companyRepository.GetPages();
         }
 
-        public int GetPages()
-        {
-            return _companyRepository.GetPages();
-        }
-        
         public IEnumerable<string> GetOrgTypes()
         {
             return _organizationRepository.GetOrgTypes();
