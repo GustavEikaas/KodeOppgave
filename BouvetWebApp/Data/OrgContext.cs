@@ -19,6 +19,7 @@ namespace BouvetWebApp.Data
         {
             modelBuilder.Entity<Enheter>().Property(x => x.Organisasjonsnummer).ValueGeneratedNever();
             modelBuilder.Entity<Enheter>().ToTable("Companies");
+            
             modelBuilder.Entity<Organisasjonsform>().ToTable("OrganizationType");
         }
     }
