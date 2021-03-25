@@ -1,10 +1,8 @@
 ﻿using System.Threading;
 using BouvetWebApp.Data;
 using BouvetWebApp.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
-namespace BouvetWebApp
+namespace BouvetWebApp.Timer
 {
     public class Refresh
     {
@@ -14,14 +12,14 @@ namespace BouvetWebApp
         {
             _companyRepository = companyRepository;
         }
-        private Timer _timer;
+        private System.Threading.Timer _timer;
 
         //private const int Interval = 1800000;
         private const int Interval = 120000 / 8;
 
         public void SetTimer()
         {
-            _timer = new Timer(Tick, null, Interval, Timeout.Infinite);
+            _timer = new System.Threading.Timer(Tick, null, Interval, Timeout.Infinite);
         }
 
         private void Tick(object state)

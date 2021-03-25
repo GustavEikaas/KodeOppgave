@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BouvetWebApp.Data;
 using BouvetWebApp.Interfaces;
 using BouvetWebApp.Models;
+using BouvetWebApp.Timer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -67,7 +68,6 @@ namespace BouvetWebApp
                 }
             }
         }
-        
 
         private static void SetRefreshTimer(IHost host)
         {

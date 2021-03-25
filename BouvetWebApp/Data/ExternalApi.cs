@@ -17,26 +17,24 @@ namespace BouvetWebApp.Data
 
         public async Task<IEnumerable<Enheter>> FetchDataFromExternalApi()
         {
-            if (PingApi())
-            {
-                using var client = new HttpClient();
-                using var res = await client.GetAsync(Query);
-                using var content = res.Content;
+            if (!PingApi()) return null;
+            
+            using var client = new HttpClient();
+            using var res = await client.GetAsync(Query);
+            using var content = res.Content;
                 
-                var data = await content.ReadAsStringAsync();
-                var updateList = JsonConvert.DeserializeObject<Root>(data);
-                data = null;
+            var data = await content.ReadAsStringAsync();
+            var updateList = JsonConvert.DeserializeObject<Root>(data);
+            data = null;
 
-                if (updateList != null && VerifyParse(updateList._embedded.Enheter.FirstOrDefault()))
-                {
-                    return updateList._embedded.Enheter;
-                }
-                Console.WriteLine("External API returned no data or parse failed");
+            if (updateList != null && VerifyParse(updateList._embedded.Enheter.FirstOrDefault()))
+            {
+                return updateList._embedded.Enheter;
             }
+            Console.WriteLine("External API returned no data or parse failed");
             return null;
         }
         
-
         private bool VerifyParse(Enheter enhet)
         {
             return !string.IsNullOrEmpty(enhet.Navn) && enhet.Organisasjonsnummer != 0 && !string.IsNullOrEmpty(enhet.Organisasjonsform.Kode);
@@ -51,7 +49,7 @@ namespace BouvetWebApp.Data
                 request.AllowAutoRedirect = false;
                 request.Method = "HEAD";
 
-                using (var response = request.GetResponse())
+                using (request.GetResponse())
                 {
                     return true;
                 }
