@@ -30,7 +30,10 @@ namespace BouvetWebApp
             {
                 var api = new ExternalApi();
                 var updateList = api.FetchDataFromExternalApi().Result;
-                _companyRepository.MergeUpdateList(updateList).Wait();
+                if (updateList != null)
+                {
+                    _companyRepository.MergeUpdateList(updateList).Wait();
+                }
             }   
             finally
             {

@@ -40,7 +40,15 @@ namespace BouvetWebApp.Repositories
             {
                 organization.Vurdering = rating;
                 context.Enheter.Update(organization);
-                await context.SaveChangesAsync();
+                try
+                {
+                    await context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    Console.WriteLine($"Something went wrong updating the rating for company with id : {id}");
+                }
+                
             }
         }
 
@@ -83,7 +91,16 @@ namespace BouvetWebApp.Repositories
                     context.Entry(company).State = EntityState.Modified;
                 }
             }
-            await context.SaveChangesAsync();
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                Console.WriteLine("Something went wrong merging information from API");
+            }
+            
         }
 
         public Enheter GetCompanyById(int id)
