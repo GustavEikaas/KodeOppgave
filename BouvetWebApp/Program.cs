@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BouvetWebApp.Data;
+using BouvetWebApp.Interfaces;
+using BouvetWebApp.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +21,7 @@ namespace BouvetWebApp
             var host = CreateHostBuilder(args).Build();
             
             CreateDbIfNotExists(host);
+            PopulateDb(host);
             SetRefreshTimer(host);
             host.Run();
         }
@@ -30,9 +33,9 @@ namespace BouvetWebApp
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var contextFactory = services.GetRequiredService<IDbContextFactory<OrgContext>>();
-                    var dbController = new ExternalApi(contextFactory,default);
-                        dbController.Initialize();
+                    var context = services.GetRequiredService<IDbContextFactory<OrgContext>>().CreateDbContext();
+                    context.Database.EnsureCreated();
+                   
                 }
                 catch (Exception ex)
                 {
@@ -42,13 +45,33 @@ namespace BouvetWebApp
             }
         }
 
+        private static void PopulateDb(IHost host)
+        {
+            using (var scope = host.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var companyRepository = services.GetRequiredService<ICompanyRepository>();
+                    var dbController = new ExternalApi(companyRepository);
+                    dbController.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred populating the DB.");
+                }
+            }
+        }
+        
+
         private static void SetRefreshTimer(IHost host)
         {
             using (var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
-                var context = services.GetRequiredService<IDbContextFactory<OrgContext>>();
-                var rf = new Refresh(context);
+                var companyRepository = services.GetRequiredService<ICompanyRepository>();
+                var rf = new Refresh(companyRepository);
                 rf.SetTimer();
             }
         }

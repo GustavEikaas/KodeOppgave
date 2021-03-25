@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using BouvetWebApp.Data;
+using BouvetWebApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -7,11 +8,11 @@ namespace BouvetWebApp
 {
     public class Refresh
     {
-        private readonly IDbContextFactory<OrgContext> _contextFactory;
+        private readonly ICompanyRepository _companyRepository;
 
-        public Refresh(IDbContextFactory<OrgContext> contextFactory)
+        public Refresh(ICompanyRepository companyRepository)
         {
-            _contextFactory = contextFactory;
+            _companyRepository = companyRepository;
         }
         private Timer _timer;
 
@@ -27,9 +28,8 @@ namespace BouvetWebApp
         {
             try
             {
-                var dbController = new ExternalApi(_contextFactory, default);
-
-                dbController.Initialize();
+                var apiController = new ExternalApi(_companyRepository);
+                apiController.Initialize();
             }   
             finally
             {

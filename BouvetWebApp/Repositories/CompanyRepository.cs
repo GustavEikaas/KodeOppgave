@@ -65,6 +65,27 @@ namespace BouvetWebApp.Repositories
             }
         }
 
+        public async Task MergeUpdateList(IEnumerable<Enheter> updateList)
+        {
+            var context = _contextFactory.CreateDbContext();
+            foreach (var company in updateList)
+            {
+                if (!context.Enheter.AsNoTracking().Any(x => x.Organisasjonsnummer == company.Organisasjonsnummer))
+                {
+                    await context.Enheter.AddAsync(company);
+                }
+                else
+                {
+                    var companyOld = await context.Enheter.AsNoTracking()
+                        .FirstAsync(x => x.Organisasjonsnummer == company.Organisasjonsnummer);
+
+                    company.Vurdering = companyOld.Vurdering;
+                    context.Entry(company).State = EntityState.Modified;
+                }
+            }
+            await context.SaveChangesAsync();
+        }
+
         public Enheter GetCompanyById(int id)
         {
             var context = _contextFactory.CreateDbContext();

@@ -15,5 +15,6 @@ namespace BouvetWebApp.Interfaces
         public Enheter GetCompanyById(int id);
 
         public int GetPages();
+        public Task MergeUpdateList(IEnumerable<Enheter> updateList);
     }
 }

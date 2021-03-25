@@ -1,57 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
+using BouvetWebApp.Interfaces;
 using BouvetWebApp.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace BouvetWebApp.Data
 {
     public class ExternalApi
     {
-        private readonly ILogger<ExternalApi> _logger;
-        private readonly IDbContextFactory<OrgContext> _contextFactory;
+        private readonly ICompanyRepository _companyRepository;
+        private const string PingUrl = @"https://data.brreg.no/enhetsregisteret/api/";
         private const string Query = @"https://data.brreg.no/enhetsregisteret/api/enheter?size=1000";
 
-        public ExternalApi(IDbContextFactory<OrgContext> contextFactory, ILogger<ExternalApi> logger)
+        public ExternalApi(ICompanyRepository companyRepository)
         {
-            _contextFactory = contextFactory;
-            _logger = logger;
+            _companyRepository = companyRepository;
         }
         public void Initialize()
         {
-            var context = _contextFactory.CreateDbContext();
-            context.Database.EnsureCreated();
             UpdateFromApi().Wait();
         }
         
         private async Task UpdateFromApi()
         {
-            var context = _contextFactory.CreateDbContext();
-            var updateList = await FetchDataFromExternalApi();
-            
+            var updateList = PingApi() ? await FetchDataFromExternalApi() : null;
+
             if (updateList != null)
             {
-                foreach (var company in updateList)
-                {
-                    if (!context.Enheter.AsNoTracking().Any(x => x.Organisasjonsnummer == company.Organisasjonsnummer))
-                    {
-                        await context.Enheter.AddAsync(company);
-                    }
-                    else
-                    {
-                        var companyOld = await context.Enheter.AsNoTracking()
-                            .FirstAsync(x => x.Organisasjonsnummer == company.Organisasjonsnummer);
-
-                        company.Vurdering = companyOld.Vurdering;
-                        context.Entry(company).State = EntityState.Modified;
-                    }
-                }
-                await context.SaveChangesAsync();
+                await _companyRepository.MergeUpdateList(updateList);
             }
         }
 
@@ -65,10 +45,40 @@ namespace BouvetWebApp.Data
                 var updateList = JsonConvert.DeserializeObject<Root>(data);
                 data = null;
 
-                if (updateList != null) return updateList._embedded.Enheter;
+                if (updateList != null && VerifyParse(updateList._embedded.Enheter.FirstOrDefault()))
+                {
+                    return updateList._embedded.Enheter;
+                }
                 
-                _logger.Log(LogLevel.Error, "External API returned no data");
+                Console.WriteLine("External API returned no data or parse failed");
                 return null;
+        }
+        
+
+        private bool VerifyParse(Enheter enhet)
+        {
+            return !string.IsNullOrEmpty(enhet.Navn) && enhet.Organisasjonsnummer != 0 && !string.IsNullOrEmpty(enhet.Organisasjonsform.Kode);
+        }
+
+        private bool PingApi()
+        {
+            try
+            {
+                var request = (HttpWebRequest)HttpWebRequest.Create(PingUrl);
+                request.Timeout = 3000;
+                request.AllowAutoRedirect = false;
+                request.Method = "HEAD";
+
+                using (var response = request.GetResponse())
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                Console.WriteLine("External API unreachable");
+                return false;
+            }
         }
     }
 }
