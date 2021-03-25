@@ -17,7 +17,7 @@ namespace BouvetWebApp
         private Timer _timer;
 
         //private const int Interval = 1800000;
-        private const int Interval = 120000 / 4;
+        private const int Interval = 120000 / 8;
 
         public void SetTimer()
         {
@@ -28,8 +28,9 @@ namespace BouvetWebApp
         {
             try
             {
-                var apiController = new ExternalApi(_companyRepository);
-                apiController.Initialize();
+                var api = new ExternalApi();
+                var updateList = api.FetchDataFromExternalApi().Result;
+                _companyRepository.MergeUpdateList(updateList).Wait();
             }   
             finally
             {

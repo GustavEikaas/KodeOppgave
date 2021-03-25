@@ -53,8 +53,12 @@ namespace BouvetWebApp
                 try
                 {
                     var companyRepository = services.GetRequiredService<ICompanyRepository>();
-                    var dbController = new ExternalApi(companyRepository);
-                    dbController.Initialize();
+                    var api = new ExternalApi();
+                    var updateList = api.FetchDataFromExternalApi().Result;
+                    if (updateList != null)
+                    {
+                        companyRepository.MergeUpdateList(updateList).Wait();
+                    }
                 }
                 catch (Exception ex)
                 {
